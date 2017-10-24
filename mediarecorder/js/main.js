@@ -50,6 +50,8 @@ var mediaRecorder;
 var recordedBlobs;
 var sourceBuffer;
 
+var bytesRecorded;
+
 var gumVideo = document.querySelector('video#gum');
 var recordedVideo = document.querySelector('video#recorded');
 
@@ -117,7 +119,9 @@ function handleSourceOpen(event) {
 
 function handleDataAvailable(event) {
   if (event.data && event.data.size > 0) {
+	console.log('Data available: ' + event.data.size + ' bytes');
     recordedBlobs.push(event.data);
+	bytesRecorded += event.data.size;
   }
 }
 
@@ -140,6 +144,7 @@ function toggleRecording() {
 function startRecording() {
   var options = {mimeType: 'video/webm', bitsPerSecond: 100000};
   recordedBlobs = [];
+  bytesRecorded = 0;
   try {
     mediaRecorder = new MediaRecorder(window.stream, options);
   } catch (e0) {
@@ -173,6 +178,7 @@ function startRecording() {
 function stopRecording() {
   mediaRecorder.stop();
   console.log('Recorded Blobs: ', recordedBlobs);
+  console.log('Total bytes recorded: ', bytesRecorded);
   recordedVideo.controls = true;
 }
 
