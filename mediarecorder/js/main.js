@@ -14,22 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/*
-Copyright 2017 Google Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 'use strict';
 
 /* globals MediaRecorder */
@@ -121,11 +105,13 @@ function toggleRecording() {
 
 // The nested try blocks will be simplified when Chrome 47 moves to Stable
 function startRecording() {
+  bytesRecorded = 0;
+	clearVidBlobs(startCB);
+}
+
+function startCB() {
   var options = {mimeType: 'video/webm', bitsPerSecond: 100000};
 
-  bytesRecorded = 0;
-	clearVidBlobs();
-	
   try {
     mediaRecorder = new MediaRecorder(window.stream, options);
   } catch (e0) {
@@ -142,6 +128,7 @@ function startRecording() {
   console.log('MediaRecorder started', mediaRecorder);
 }
 
+
 function stopRecording() {
   mediaRecorder.stop();
   console.log('Total bytes recorded: ', bytesRecorded);
@@ -154,7 +141,7 @@ function play() {
 
 function playVidCB(recordedBlobs) {
 	console.log( 'recordedBlobs size: ' + recordedBlobs.size );
-	
+
   var superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
   recordedVideo.src = window.URL.createObjectURL(superBuffer);
 }
@@ -236,16 +223,18 @@ function storeVidBlob(blob) {
 	}
 }
 
-function clearVidBlobs() {
+function clearVidBlobs(resultCB) {
 	var transaction = getTransaction();
   var objectStore = transaction.objectStore('current_vid');
-	
+
 	objectStore.openCursor().onsuccess = function(evt) {
 		var cursor = event.target.result;
 		if (cursor) {
 			cursor.delete();
 			cursor.continue();
-		}
+		} else {
+      resultCB();
+    }
 	}
 }
 
@@ -254,9 +243,9 @@ function clearVidBlobs() {
 function recallVidBlobs(resultCB) {
 	var transaction = getTransaction();
 	var objectStore = transaction.objectStore('current_vid');
-	
+
 	var blobList = [];
-	
+
 	objectStore.openCursor().onsuccess = function(evt) {
 		var cursor = evt.target.result;
 		if (cursor) {
@@ -267,5 +256,3 @@ function recallVidBlobs(resultCB) {
 		}
 	}
 }
-
-
